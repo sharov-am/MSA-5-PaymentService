@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1g20f01" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
+  <bpmn:collaboration id="Collaboration_1g5jcye">
+    <bpmn:participant id="Participant_0n9i08e" name="Payment operation" processRef="Process_0mxapms" />
+    <bpmn:participant id="Participant_1agh49s" name="manual check operation" processRef="Process_148wryx" />
+    <bpmn:messageFlow id="Flow_13b9w49" sourceRef="Activity_1qltax2" targetRef="Event_1wrijpu" />
+    <bpmn:messageFlow id="Flow_1grsubi" sourceRef="Activity_04c09ja" targetRef="Activity_1qltax2" />
+    <bpmn:textAnnotation id="TextAnnotation_1xr094o">
+      <bpmn:text>cancel operation</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0dhzf26" associationDirection="None" sourceRef="TextAnnotation_1xr094o" targetRef="Flow_0ug843b" />
+    <bpmn:textAnnotation id="TextAnnotation_198ba67">
+      <bpmn:text>cancel_operation</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_07xlg8y" associationDirection="None" sourceRef="Flow_0f51ggr" targetRef="TextAnnotation_198ba67" />
+    <bpmn:textAnnotation id="TextAnnotation_12byopo">
+      <bpmn:text>cancel or denied</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0ueyuoy" associationDirection="None" sourceRef="Flow_01r2sxr" targetRef="TextAnnotation_12byopo" />
+    <bpmn:textAnnotation id="TextAnnotation_0pqb14d">
+      <bpmn:text>operation is canceled</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1wkyv35">
+      <bpmn:text>done'</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1y3puml" associationDirection="None" sourceRef="Event_06ir0jl" targetRef="TextAnnotation_0pqb14d" />
+    <bpmn:association id="Association_1iaevtd" associationDirection="None" sourceRef="Event_111llmm" targetRef="TextAnnotation_1wkyv35" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_0mxapms" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_154jvt4">
+      <bpmn:outgoing>Flow_0f5cp0t</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_1ousj46" name="create_payment">
+      <bpmn:incoming>Flow_0f5cp0t</bpmn:incoming>
+      <bpmn:outgoing>Flow_04xpcxg</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0dkhub6</bpmn:outgoing>
+      <bpmn:extensionElements>
+          <zeebe:taskDefinition type="create_payment" /> 
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0cwjw7f" default="Flow_0d1zq5w">
+      <bpmn:incoming>Flow_04xpcxg</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ug843b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0d1zq5w</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="Event_05t4vs8">
+      <bpmn:incoming>Flow_0dkhub6</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1s5soxn" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:serviceTask id="Activity_1njscy9" name="pre_payment">
+      <bpmn:incoming>Flow_0d1zq5w</bpmn:incoming>
+      <bpmn:outgoing>Flow_1i26ow2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0x3ugyo</bpmn:outgoing>
+       <bpmn:extensionElements>
+          <zeebe:taskDefinition type="pre_payment" /> 
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="Event_0kmx2pt">
+      <bpmn:incoming>Flow_0x3ugyo</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_08uz1ab" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:exclusiveGateway id="Gateway_1c02z1o">
+      <bpmn:incoming>Flow_1i26ow2</bpmn:incoming>
+      <bpmn:outgoing>Flow_0f51ggr</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0fmg1t8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_0b9hb7o" name="fraud_check" default="Flow_1wr6dlh">
+      <bpmn:incoming>Flow_0fmg1t8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wr6dlh</bpmn:outgoing>
+      <bpmn:outgoing>Flow_11utz53</bpmn:outgoing>
+       <bpmn:extensionElements>
+          <zeebe:taskDefinition type="fraud_check" /> 
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_06ir0jl">
+      <bpmn:incoming>Flow_0ug843b</bpmn:incoming>
+      <bpmn:incoming>Flow_1322gq2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:intermediateThrowEvent id="Event_0388m6i">
+      <bpmn:incoming>Flow_0isf7dm</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0xd9gyb" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:exclusiveGateway id="Gateway_00b4u5y">
+      <bpmn:incoming>Flow_1wr6dlh</bpmn:incoming>
+      <bpmn:incoming>Flow_0oudolq</bpmn:incoming>
+      <bpmn:outgoing>Flow_01r2sxr</bpmn:outgoing>
+      <bpmn:outgoing>Flow_03hfc50</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12mfw6l</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="Event_12s0ddh">
+      <bpmn:incoming>Flow_11utz53</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0a8wtek" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:serviceTask id="Activity_05bsuem" name="refund">
+      <bpmn:incoming>Flow_0f51ggr</bpmn:incoming>
+      <bpmn:incoming>Flow_01r2sxr</bpmn:incoming>
+      <bpmn:outgoing>Flow_1322gq2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0isf7dm</bpmn:outgoing>
+      <bpmn:extensionElements>
+          <zeebe:taskDefinition type="refund" /> 
+      </bpmn:extensionElements>
+      
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_012hsrg" name="counterparty_payment">
+      <bpmn:incoming>Flow_03hfc50</bpmn:incoming>
+      <bpmn:incoming>Flow_0ww7gl6</bpmn:incoming>
+      <bpmn:outgoing>Flow_083x48h</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1hjo2ke</bpmn:outgoing>
+       <bpmn:extensionElements>
+          <zeebe:taskDefinition type="counterparty_payment" /> 
+      </bpmn:extensionElements>
+      
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_1qltax2" name="manual_check">
+      <bpmn:incoming>Flow_12mfw6l</bpmn:incoming>
+      <bpmn:outgoing>Flow_0oudolq</bpmn:outgoing>
+      <bpmn:extensionElements>
+          <zeebe:taskDefinition type="manual_check" /> 
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_111llmm">
+      <bpmn:incoming>Flow_083x48h</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:intermediateThrowEvent id="Event_00rakwj">
+      <bpmn:incoming>Flow_1hjo2ke</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0sxytgg" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:boundaryEvent id="Event_09exd0y" attachedToRef="Activity_1qltax2">
+      <bpmn:outgoing>Flow_0ww7gl6</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0pd2n0x" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0f5cp0t" sourceRef="StartEvent_154jvt4" targetRef="Activity_1ousj46" />
+    <bpmn:sequenceFlow id="Flow_04xpcxg" sourceRef="Activity_1ousj46" targetRef="Gateway_0cwjw7f" />
+    <bpmn:sequenceFlow id="Flow_0dkhub6" sourceRef="Activity_1ousj46" targetRef="Event_05t4vs8" />
+    <bpmn:sequenceFlow id="Flow_0ug843b" sourceRef="Gateway_0cwjw7f" targetRef="Event_06ir0jl" />
+    <bpmn:sequenceFlow id="Flow_0d1zq5w" sourceRef="Gateway_0cwjw7f" targetRef="Activity_1njscy9" />
+    <bpmn:sequenceFlow id="Flow_1i26ow2" sourceRef="Activity_1njscy9" targetRef="Gateway_1c02z1o" />
+    <bpmn:sequenceFlow id="Flow_0x3ugyo" sourceRef="Activity_1njscy9" targetRef="Event_0kmx2pt" />
+    <bpmn:sequenceFlow id="Flow_0f51ggr" sourceRef="Gateway_1c02z1o" targetRef="Activity_05bsuem" />
+    <bpmn:sequenceFlow id="Flow_0fmg1t8" sourceRef="Gateway_1c02z1o" targetRef="Activity_0b9hb7o" />
+    <bpmn:sequenceFlow id="Flow_1wr6dlh" sourceRef="Activity_0b9hb7o" targetRef="Gateway_00b4u5y" />
+    <bpmn:sequenceFlow id="Flow_11utz53" sourceRef="Activity_0b9hb7o" targetRef="Event_12s0ddh" />
+    <bpmn:sequenceFlow id="Flow_1322gq2" sourceRef="Activity_05bsuem" targetRef="Event_06ir0jl" />
+    <bpmn:sequenceFlow id="Flow_0isf7dm" sourceRef="Activity_05bsuem" targetRef="Event_0388m6i" />
+    <bpmn:sequenceFlow id="Flow_0oudolq" sourceRef="Activity_1qltax2" targetRef="Gateway_00b4u5y" />
+    <bpmn:sequenceFlow id="Flow_01r2sxr" sourceRef="Gateway_00b4u5y" targetRef="Activity_05bsuem" />
+    <bpmn:sequenceFlow id="Flow_03hfc50" sourceRef="Gateway_00b4u5y" targetRef="Activity_012hsrg" />
+    <bpmn:sequenceFlow id="Flow_12mfw6l" sourceRef="Gateway_00b4u5y" targetRef="Activity_1qltax2" />
+    <bpmn:sequenceFlow id="Flow_0ww7gl6" sourceRef="Event_09exd0y" targetRef="Activity_012hsrg" />
+    <bpmn:sequenceFlow id="Flow_083x48h" sourceRef="Activity_012hsrg" targetRef="Event_111llmm" />
+    <bpmn:sequenceFlow id="Flow_1hjo2ke" sourceRef="Activity_012hsrg" targetRef="Event_00rakwj" />
+  </bpmn:process>
+  <bpmn:process id="Process_148wryx">
+    <bpmn:intermediateCatchEvent id="Event_1wrijpu">
+      <bpmn:outgoing>Flow_04d9f2z</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0980tq8" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Activity_04c09ja">
+      <bpmn:incoming>Flow_04d9f2z</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_04d9f2z" sourceRef="Event_1wrijpu" targetRef="Activity_04c09ja" />
+  </bpmn:process>
+  
+</bpmn:definitions>

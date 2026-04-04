@@ -10,6 +10,4 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean
 
-USER 1001
-
-ENTRYPOINT ["/usr/local/zeebe/bin/broker"]
+ENTRYPOINT ["sh", "-c"]

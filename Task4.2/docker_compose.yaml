@@ -1,11 +1,8 @@
 services:
 
   zeebe: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: camunda/zeebe:${CAMUNDA_PLATFORM_VERSION}
     container_name: zeebe
-    command: ["/usr/local/zeebe/bin/broker"]
     ports:
       - "26500:26500"
       - "9600:9600"
@@ -21,7 +18,7 @@ services:
       - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
     restart: unless-stopped
     healthcheck:
-      test: \[ "CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1" \]
+      test: [ "CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -143,7 +140,7 @@ services:
       - camunda-platform
     depends_on:
       zeebe:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   zeebe:

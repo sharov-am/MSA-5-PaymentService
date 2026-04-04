@@ -2,7 +2,8 @@ import logging
 from pyzeebe import ZeebeWorker, create_insecure_channel
 import uuid
 import random
-
+import os
+import asyncio
 
 logging.basicConfig(
     level=logging.INFO, # Set the minimum level to log (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -10,100 +11,114 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S' # Define the timestamp format
 )
 
-# 1. Получаем строку из переменной окружения (с дефолтом на всякий случай)
-zeebe_address = os.getenv("ZEEBE_ADDRESS", "localhost:26500")
 
-# 2. Парсим строку: разделяем по двоеточию
-# host будет "zeebe", port_str будет "26500"
-host, port_str = zeebe_address.split(":")
-port = int(port_str) # Конвертируем порт в число
+def register_tasks(worker: ZeebeWorker):
+       
+        @worker.task(task_type="create_payment")
+        async def create_payment():
+                payment_id = str( uuid.uuid4() )
 
-# 3. Используем при создании канала
-channel = create_insecure_channel(hostname=host, port=port)
+                logging.info(f"create_payment called, new payment_id {payment_id}.")
+                return {
+                        "create_payment": True,
+                        "payment_id":payment_id
+                }
 
-#channel = create_insecure_channel(hostname="zeebe", port=26500)
-worker = ZeebeWorker(channel)
+        @worker.task(task_type="pre_payment")
+        async def pre_payment(payment_id: str):
+                if random.random() < 1/10:
+                        logging.info(f"canceling payment {payment_id}.")
+                        return {
+                                "cancel": True,
+                                "success":False,
+                                "payment_id":payment_id
+                                }
+                return {
+                        "success":True,
+                        "payment_id":payment_id
+                }                
+                                
 
+        @worker.task(task_type="fraud_check")
+        async def fraud_check(payment_id: str):
+                val = random.random() 
+                
+                if val < 1/20:
+                        logging.info(f"manual fraud check {payment_id}.")
+                        return {
+                                "manual_check": True,
+                                "denied": False,
+                                "cancel":False,
+                                "payment_id":payment_id
+                                }
+                if val >= 1/20 and val <.2 :
+                        logging.info(f"denying payment {payment_id}.")
+                        return {
+                                "denied": True,
+                                "cancel":False,
+                                "manual_check": False,
+                                "payment_id":payment_id
+                                }                
+                logging.info(f"successful payment {payment_id}.")
+                return {
+                        "denied": False,
+                        "cancel":False,
+                        "manual_check": False,
+                        "payment_id":payment_id
+                        }     
 
-@worker.task(task_type="create_payment")
-def create_payment():
-    payment_id = str( uuid.uuid4() )
-  
-    logging.info(f"create_payment called, new payment_id {payment_id}.")
-    return {
-            "create_payment": True,
-            "payment_id":payment_id
-           }
-
-@worker.task(task_type="pre_payment")
-def pre_payment(payment_id: str):
-    if random.random() < 1/10:
-             logging.info(f"canceling payment {payment_id}.")
-             return {
-                     "cancel": True,
-                     "success":False,
-                     "payment_id":payment_id
-                    }
-    return {
-              "success":True,
-              "payment_id":payment_id
-           }                
-                     
-
-@worker.task(task_type="fraud_check")
-def fraud_check(payment_id: str):
-    val = random.random() 
-    
-    if val < 1/20:
-             logging.info(f"manual fraud check {payment_id}.")
-             return {
-                     "fraud_check": 'manual',
-                     "payment_id":payment_id
-                    }
-    if val >= 1/20 and val <.2 :
-             logging.info(f"denying payment {payment_id}.")
-             return {
-                     "fraud_check_result": False,
-                     "payment_id":payment_id
-                    }                
-    logging.info(f"successful payment {payment_id}.")
-    return {
-              "fraud_check_result": True,
-              "payment_id":payment_id
-            }     
-
-@worker.task(task_type="refund")
-def refund(payment_id: str):
-    logging.info(f"refund payment {payment_id}.")
-    return {
-              "refund": True,
-              "payment_id":payment_id
-            }   
-    
+        @worker.task(task_type="refund")
+        async def refund(payment_id: str):
+                logging.info(f"refund payment {payment_id}.")
+                return {
+                        "refund": True,
+                        "payment_id":payment_id
+                        }   
+                
 
 
-@worker.task(task_type="manual_check")
-def manual_check(payment_id: str):
-     val = random.random() 
-    
-     if val < 1/20:
-             logging.info(f"manual fraud check {payment_id}.")
-             return {
-                     "fraud_manual_check": False,
-                     "payment_id":payment_id
-                    }
-     return {
-              "fraud_manual_check": True,
-              "payment_id":payment_id
-            }               
-                    
-@worker.task(task_type="counterparty_payment")
-def counterparty_payment(payment_id: str):
-     logging.info(f"counterparty payment {payment_id} successful.")
-     return {
-              "payment_id":payment_id
-            }      
+        @worker.task(task_type="manual_check")
+        async def manual_check(payment_id: str):
+                val = random.random() 
+                
+                if val < 1/20:
+                        logging.info(f"manual fraud check {payment_id}.")
+                        return {
+                                "denied": True,
+                                "cancel":False,
+                                "payment_id":payment_id
+                                }
+                return {
+                        "denied": False,
+                        "cancel":False,
+                        "payment_id":payment_id
+                        }               
+                                
+        @worker.task(task_type="counterparty_payment")
+        async def counterparty_payment(payment_id: str):
+                logging.info(f"counterparty payment {payment_id} successful.")
+                return {
+                        "payment_id":payment_id
+                        }      
 
 
-# Запускаем всё одним махом
-worker.work()
+        @worker.task(task_type="notify")
+        async def notify(**kwargs):
+                logging.info(f"notify called {kwargs} .")
+
+async def main():
+   
+    try:
+        zeebe_address = os.getenv("ZEEBE_ADDRESS", "localhost:26500")
+        logging.info(f"Worker is connecting to {zeebe_address}...")
+        channel = create_insecure_channel( zeebe_address)
+        worker = ZeebeWorker(channel)
+        register_tasks(worker)
+        await worker.work()
+    except Exception as e:
+        import traceback
+        logging.error(traceback.format_exc()) 
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

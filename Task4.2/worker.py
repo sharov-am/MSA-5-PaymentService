@@ -43,7 +43,7 @@ def register_tasks(worker: ZeebeWorker):
         async def fraud_check(payment_id: str):
                 val = random.random() 
                 
-                if val < 1/20:
+                if val < 1/10:
                         logging.info(f"manual fraud check {payment_id}.")
                         return {
                                 "manual_check": True,
@@ -51,12 +51,13 @@ def register_tasks(worker: ZeebeWorker):
                                 "cancel":False,
                                 "payment_id":payment_id
                                 }
-                if val >= 1/20 and val <.2 :
+                if val >= 1/10 and val <.2 :
                         logging.info(f"denying payment {payment_id}.")
                         return {
                                 "denied": True,
                                 "cancel":False,
                                 "manual_check": False,
+                                 "success":False,
                                 "payment_id":payment_id
                                 }                
                 logging.info(f"successful payment {payment_id}.")
@@ -64,6 +65,7 @@ def register_tasks(worker: ZeebeWorker):
                         "denied": False,
                         "cancel":False,
                         "manual_check": False,
+                        "success": True,
                         "payment_id":payment_id
                         }     
 
@@ -81,16 +83,19 @@ def register_tasks(worker: ZeebeWorker):
         async def manual_check(payment_id: str):
                 val = random.random() 
                 
-                if val < 1/20:
-                        logging.info(f"manual fraud check {payment_id}.")
+                if val < 1/4:
+                   import time
+                   time.sleep(val*100)
+                
+                val = random.random() 
+                if val < 1/2:
+                        logging.info(f"manual fraud check failed: {payment_id}.")
                         return {
                                 "denied": True,
-                                "cancel":False,
                                 "payment_id":payment_id
                                 }
                 return {
                         "denied": False,
-                        "cancel":False,
                         "payment_id":payment_id
                         }               
                                 
